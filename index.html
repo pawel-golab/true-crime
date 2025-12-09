@@ -1,126 +1,27 @@
 <!doctype html>
 <html lang="pl">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Interaktywna mapa (statyczna strona)</title>
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha384-sA+q0Zq2QbM4qg0Z8q9rYb6pGQ3v2Q0j3ZsV3q1j1I0s3c6k5Y2s5cQ0j1c4g7pS" crossorigin=""/>
-  <style>
-    html,body{height:100%;margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
-    #map{height:100vh;width:100%}
-    /* Floating list of points (desktop) */
-    .points-list{
-      position: absolute;top:12px;left:12px;z-index:1000;background:rgba(255,255,255,0.95);border-radius:8px;padding:10px;box-shadow:0 4px 12px rgba(0,0,0,0.15);max-width:320px;max-height:70vh;overflow:auto;font-size:14px
-    }
-    .points-list h3{margin:0 0 8px 0;font-size:15px}
-    .points-list button{display:block;width:100%;text-align:left;padding:8px;border:0;background:transparent;border-radius:6px;cursor:pointer}
-    .points-list button:hover{background:#f1f1f1}
-    @media(max-width:700px){
-      .points-list{left:8px;right:8px;max-width:none;padding:8px;font-size:13px}
-    }
-  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Minimalna mapa Leaflet</title>
+  <!-- minimalnie: tylko niezbędny CSS Leaflet (bez integrity/crossorigin) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 </head>
 <body>
+  <div id="map" style="width:100%;height:100vh"></div>
 
-<div id="map"></div>
-<div class="points-list" id="pointsList">
-  <h3>Wskaż punkt</h3>
-  <div id="pointsButtons"></div>
-</div>
+  <!-- minimalnie: tylko skrypt Leaflet (bez integrity/crossorigin) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // Najprostsza inicjalizacja: jeden marker i popup z linkiem do Google Maps
+    var map = L.map('map').setView([52.23, 21.01], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: ''
+    }).addTo(map);
 
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha384-KyZXEAg3QhqLMpG8r+Knujsl5/9v7q1x6f5Y2s5cQ0j1c4g7pS" crossorigin=""></script>
-<script>
-/*
-  Jednoplikiowa, statyczna mapa oparta o Leaflet + OpenStreetMap.
-  - Wstaw swoje punkty w tablicy `points` (lat, lon, title, short, url)
-  - Kliknięcie markeru: pokazuje krótką notkę + link "Czytaj dalej"
-  - Link "Otwórz w Google Maps" otwiera współrzędne w Google Maps (nowa karta)
-  - Lista po lewej umożliwia szybkie otwarcie punktu
-  - Możesz hostować plik na GitHub Pages, Netlify itp. bez serwera.
-*/
-
-// --- Przykładowe punkty. Zastąp własnymi ---
-const points = [
-  {id:1, title:'Plac Zamkowy', lat:52.2478, lon:21.0132, short:'Historyczne centrum, Zamek Królewski', url:'https://pl.wikipedia.org/wiki/Zamek_Królewski_w_Warszawie'},
-  {id:2, title:'Pałac Kultury i Nauki', lat:52.2319, lon:21.0067, short:'Rozpoznawalny punkt orientacyjny', url:'https://pl.wikipedia.org/wiki/Pa%C5%82ac_Kultury_i_Nauki'},
-  {id:3, title:'Łazienki Królewskie', lat:52.2121, lon:21.0189, short:'Park z Pałacem na Wyspie', url:'https://pl.wikipedia.org/wiki/Łazienki_Królewskie_w_Warszawie'}
-];
-
-// --- Inicjalizacja mapy ---
-const map = L.map('map', {zoomControl:true}).setView([52.23, 21.01], 12);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  maxZoom: 19,
-  attribution: '&copy; OpenStreetMap contributors'
-}).addTo(map);
-
-// --- Dodawanie markerów i przycisków listy ---
-const markersById = new Map();
-const pointsButtons = document.getElementById('pointsButtons');
-
-points.forEach(p => {
-  const marker = L.marker([p.lat, p.lon]).addTo(map);
-  const gmapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.lat + ',' + p.lon)}`;
-  const popupHtml = `
-    <div style="min-width:180px">
-      <strong>${escapeHtml(p.title)}</strong>
-      <p style="margin:6px 0 8px 0">${escapeHtml(p.short)}</p>
-      <div style="display:flex;gap:8px;flex-wrap:wrap">
-        <a href="${p.url}" target="_blank" rel="noopener" style="text-decoration:none;padding:6px 8px;border-radius:6px;background:#1976d2;color:#fff;font-size:13px">Czytaj dalej</a>
-        <a href="${gmapsUrl}" target="_blank" rel="noopener" style="text-decoration:none;padding:6px 8px;border-radius:6px;border:1px solid #ccc;font-size:13px">Otwórz w Google Maps</a>
-      </div>
-    </div>
-  `;
-  marker.bindPopup(popupHtml);
-  markersById.set(p.id, marker);
-
-  // Dodaj przycisk na liście
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.innerHTML = `<strong>${escapeHtml(p.title)}</strong><div style="font-size:12px;color:#555">${escapeHtml(p.short)}</div>`;
-  btn.addEventListener('click', () => {
-    map.setView([p.lat, p.lon], Math.max(map.getZoom(), 14), {animate:true});
-    marker.openPopup();
-  });
-  pointsButtons.appendChild(btn);
-});
-
-// --- Utility: otwieranie markera przez hash URL np. #open=2 ---
-function openMarkerFromHash(){
-  const h = location.hash.replace('#','');
-  if(!h) return;
-  const m = h.match(/open=(\d+)/);
-  if(m){
-    const id = parseInt(m[1],10);
-    const marker = markersById.get(id);
-    if(marker){
-      map.setView(marker.getLatLng(), 15);
-      marker.openPopup();
-    }
-  }
-}
-window.addEventListener('hashchange', openMarkerFromHash);
-openMarkerFromHash();
-
-// --- Prosta funkcja "escape" by uniknąć wstrzyknięć, bo popup używa innerHTML ---
-function escapeHtml(str){
-  if(!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-/*
-  Dalsze opcje które możesz dodać:
-  - marker clustering (plugin: leaflet.markercluster)
-  - wczytanie punktów z lokalnego points.json (fetch('/points.json')) — wtedy pamiętaj o CORS jeśli zewnętrznego źródła
-  - użycie własnych ikon (L.icon)
-  - filtr / wyszukiwarka po liście (prosty input który filtruje `pointsButtons` i/lub markerów)
-*/
-</script>
+    var marker = L.marker([52.23, 21.01]).addTo(map);
+    marker.bindPopup('<strong>Przykładowy punkt</strong><br><a href="https://www.google.com/maps/search/?api=1&query=52.23,21.01" target="_blank" rel="noopener">Otwórz w Google Maps</a>');
+  </script>
 </body>
 </html>
